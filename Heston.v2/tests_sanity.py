@@ -8,6 +8,7 @@ import pandas as pd
 from heston_crypto_sim.models.heston_jump import HestonJumpDiffusionModel
 from heston_crypto_sim.params_estimator import HestonParameterEstimator
 from heston_crypto_sim.stats_tools import calculate_statistics
+from heston_crypto_sim.time_scale_analysis import run_time_scale_sweep
 
 
 def test_parameter_estimation() -> None:
@@ -48,9 +49,38 @@ def test_statistics_output() -> None:
     assert stats["percentiles"]["50"] == 30_000.0
 
 
+def test_time_scale_sweep() -> None:
+    model = HestonJumpDiffusionModel(
+        S0=30_000,
+        V0=0.4**2,
+        mu=0.1,
+        kappa=1.5,
+        theta=0.4**2,
+        sigma_v=0.6,
+        rho=-0.5,
+        lambda_jump=0.02,
+        mu_jump=0.0,
+        sigma_jump=0.05,
+    )
+    results = run_time_scale_sweep(
+        model=model,
+        days_list=[5, 10],
+        n_paths=256,
+        spot=30_000,
+        target_price=31_000,
+        base_seed=42,
+        seed_offset=0,
+    )
+    assert [res.days for res in results] == [5, 10]
+    assert results[0].delta_mean is None
+    assert results[1].delta_mean is not None
+    assert results[1].delta_up_probability is not None
+
+
 if __name__ == "__main__":
     # Run the tests without requiring pytest
     test_parameter_estimation()
     test_model_simulation_shapes()
     test_statistics_output()
+    test_time_scale_sweep()
     print("Sanity tests passed.")
