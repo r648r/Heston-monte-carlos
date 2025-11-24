@@ -21,6 +21,11 @@ from .regimes import detect_regime, estimate_jump_parameters
 from .reporting.html_report import generate_report, save_report
 from .reporting.plots import plot_distribution, plot_sample_paths
 from .stats_tools import calculate_statistics, prob_updown
+from .time_scale_analysis import (
+    format_time_scale_table,
+    run_time_scale_sweep,
+    save_time_scale_results,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +42,19 @@ def _parse_bucket_ranges(bucket_args: Sequence[str] | None) -> list[tuple[float,
             raise argparse.ArgumentTypeError(f"Invalid bucket specification '{item}'. Expected low:high.") from exc
         buckets.append((low, high))
     return buckets
+
+
+def _prepare_time_scale_days(days: Sequence[int]) -> list[int]:
+    unique: list[int] = []
+    seen: set[int] = set()
+    for raw in days:
+        day = int(raw)
+        if day <= 0:
+            raise ValueError("Time scale entries must be strictly positive integers.")
+        if day not in seen:
+            unique.append(day)
+            seen.add(day)
+    return unique
 
 
 def _compute_forecast_days(days: int, target_date: str | None) -> tuple[int, datetime | None]:
@@ -104,6 +122,21 @@ def build_parser() -> argparse.ArgumentParser:
         "--bucket-ranges",
         nargs="*",
         help="Buckets in the form low:high; e.g. 30000:35000 35000:40000",
+    )
+    parser.add_argument(
+        "--time-scale-sweep",
+        nargs="*",
+        type=int,
+        help="Additional horizons (days) for comparative reliability analysis.",
+    )
+    parser.add_argument(
+        "--time-scale-output",
+        help="Optional JSON output path for --time-scale-sweep results.",
+    )
+    parser.add_argument(
+        "--rng-seed",
+        type=int,
+        help="Seed for reproducible Monte Carlo draws.",
     )
     parser.add_argument(
         "--log-level",
@@ -180,10 +213,12 @@ def main(argv: Sequence[str] | None = None) -> None:
     )
 
     logger.info("Running Monte Carlo with %s paths × %s steps.", args.paths, forecast_days)
+    rng_main = np.random.default_rng(args.rng_seed) if args.rng_seed is not None else None
     sim_result = model.simulate_paths(
         T=forecast_days / 365,
         n_steps=max(forecast_days, 1),
         n_paths=args.paths,
+        rng=rng_main,
     )
     final_prices = sim_result.prices[:, -1] if sim_result.prices.ndim == 2 else sim_result.prices
     if not np.all(np.isfinite(final_prices)):
@@ -295,6 +330,26 @@ def main(argv: Sequence[str] | None = None) -> None:
     except argparse.ArgumentTypeError as exc:
         parser.error(str(exc))
     bucket_markets = compute_bucket_market_probs(final_prices, buckets) if buckets else {}
+
+    if args.time_scale_sweep:
+        sweep_candidates = [forecast_days] + list(args.time_scale_sweep)
+        try:
+            sweep_days = _prepare_time_scale_days(sweep_candidates)
+        except ValueError as exc:
+            parser.error(str(exc))
+        sweep_results = run_time_scale_sweep(
+            model=model,
+            days_list=sweep_days,
+            n_paths=args.paths,
+            spot=current_price,
+            target_price=args.target_price,
+            base_seed=args.rng_seed,
+            seed_offset=1,
+        )
+        summary_table = format_time_scale_table(sweep_results, include_target=args.target_price is not None)
+        logger.info("Time-scale comparison:\n%s", summary_table)
+        if args.time_scale_output:
+            save_time_scale_results(sweep_results, args.time_scale_output)
 
     histogram_file = plot_distribution(final_prices, args.target_price, args.histogram_path)
     paths_figure = plot_sample_paths(
