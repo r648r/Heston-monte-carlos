@@ -1,11 +1,11 @@
 # Heston Monte-Carlo — Crypto Stochastic-Volatility Simulator
 
-🇬🇧 **English** · [🇫🇷 Français](README.fr.md)
+**English** · [Français](README.fr.md)
 
 Quantitative-finance project: a **Heston stochastic-volatility model with jumps**
 applied to crypto markets, plus a learning lab that builds the theory from scratch.
 
-## 🎯 `Heston.v2/` — Bitcoin Heston simulator (flagship)
+## `Heston.v2/` — Bitcoin Heston simulator (flagship)
 
 A clean, modular, tested Python package (`heston_crypto_sim`) that:
 
@@ -31,10 +31,10 @@ Simulated BTC price paths and the resulting terminal-price distribution:
 
 ![Terminal price distribution](Heston.v2/outputs/nov_hist.png)
 
-## 📚 `heston-learning-lab/` — step-by-step theory (FR notebooks)
+## `heston-learning-lab/` — step-by-step theory (FR notebooks)
 
 Dockerised Jupyter lab (5 notebooks, in French) building the model from the
-ground up: Brownian motion → full Heston model → Monte-Carlo → HTML report
+ground up: Brownian motion -> full Heston model -> Monte-Carlo -> HTML report
 generation.
 
 ```bash
