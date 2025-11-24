@@ -1,49 +1,48 @@
-# Heston Monte-Carlo — Simulateur de volatilité stochastique crypto
+# Heston Monte-Carlo — Crypto Stochastic-Volatility Simulator
 
-🇫🇷 **Français** · [🇬🇧 English](README.en.md)
+🇬🇧 **English** · [🇫🇷 Français](README.fr.md)
 
-Projet de finance quantitative : un **modèle de Heston à volatilité stochastique
-avec sauts** appliqué aux marchés crypto, plus un laboratoire d'apprentissage qui
-construit la théorie depuis zéro.
+Quantitative-finance project: a **Heston stochastic-volatility model with jumps**
+applied to crypto markets, plus a learning lab that builds the theory from scratch.
 
-## 🎯 `Heston.v2/` — simulateur Heston Bitcoin (pièce maîtresse)
+## 🎯 `Heston.v2/` — Bitcoin Heston simulator (flagship)
 
-Un package Python propre, modulaire et testé (`heston_crypto_sim`) qui :
+A clean, modular, tested Python package (`heston_crypto_sim`) that:
 
-- récupère les données de marché via l'API publique **Binance** (`data_fetcher`)
-- détecte le **régime de marché** courant (`regimes`)
-- estime les paramètres **Heston + sauts** heuristiquement (`params_estimator`)
-- lance une simulation **Monte-Carlo** des trajectoires de prix (`models/heston_jump`)
-- calcule des probabilités pour des paris type **Polymarket** — hausse/baisse,
-  « au-dessus de K », « dans [K1, K2] » (`stats_tools`, `polymarket_adapter`)
-- génère des graphes et un **rapport HTML** autonome (`reporting/`)
+- pulls market data from the **Binance** public API (`data_fetcher`)
+- detects the current **market regime** (`regimes`)
+- estimates **Heston + jump** parameters heuristically (`params_estimator`)
+- runs a **Monte-Carlo** simulation of price paths (`models/heston_jump`)
+- computes probabilities for **Polymarket**-style bets — up/down,
+  "above K", "inside [K1, K2]" (`stats_tools`, `polymarket_adapter`)
+- generates plots and a standalone **HTML report** (`reporting/`)
 
 ```bash
 cd Heston.v2
-python -m heston_crypto_sim.cli      # lance une simulation + rapport HTML
-pytest tests_sanity.py               # tests de cohérence
+python -m heston_crypto_sim.cli      # run a simulation + HTML report
+pytest tests_sanity.py               # sanity tests
 ```
 
-### Exemple de sortie
+### Sample output
 
-Trajectoires de prix BTC simulées et distribution du prix terminal :
+Simulated BTC price paths and the resulting terminal-price distribution:
 
-![Trajectoires de prix Monte-Carlo](Heston.v2/outputs/nov_paths.png)
+![Monte-Carlo simulated price paths](Heston.v2/outputs/nov_paths.png)
 
-![Distribution du prix terminal](Heston.v2/outputs/nov_hist.png)
+![Terminal price distribution](Heston.v2/outputs/nov_hist.png)
 
-## 📚 `heston-learning-lab/` — théorie pas à pas (FR)
+## 📚 `heston-learning-lab/` — step-by-step theory (FR notebooks)
 
-Laboratoire Jupyter dockerisé (5 notebooks, en français) qui construit le modèle
-depuis les bases : mouvement brownien → modèle de Heston complet → Monte-Carlo →
-génération de rapports HTML.
+Dockerised Jupyter lab (5 notebooks, in French) building the model from the
+ground up: Brownian motion → full Heston model → Monte-Carlo → HTML report
+generation.
 
 ```bash
 cd heston-learning-lab && ./start_lab.sh   # Jupyter via Docker
 ```
 
-## `kyle/` — Monte-Carlo GBM
-Simulations de portefeuille par mouvement brownien géométrique (scripts d'échauffement).
+## `kyle/` — GBM Monte-Carlo
+Geometric-Brownian-Motion portfolio simulations (warm-up scripts).
 
 ---
-*Projet éducatif / de recherche — pas un conseil financier.*
+*Educational / research project — not financial advice.*
